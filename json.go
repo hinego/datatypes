@@ -104,7 +104,9 @@ func (js JSON) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
 type JSONQueryExpression struct {
 	column      string
 	keys        []string
+	key         string
 	hasKeys     bool
+	hasElement  bool
 	equals      bool
 	equalsValue interface{}
 }
@@ -118,6 +120,12 @@ func JSONQuery(column string) *JSONQueryExpression {
 func (jsonQuery *JSONQueryExpression) HasKey(keys ...string) *JSONQueryExpression {
 	jsonQuery.keys = keys
 	jsonQuery.hasKeys = true
+	return jsonQuery
+}
+
+func (jsonQuery *JSONQueryExpression) HasElement(key string) *JSONQueryExpression {
+	jsonQuery.key = key
+	jsonQuery.hasElement = true
 	return jsonQuery
 }
 
@@ -171,6 +179,10 @@ func (jsonQuery *JSONQueryExpression) Build(builder clause.Builder) {
 					stmt.WriteString(" ? ")
 					stmt.AddVar(builder, jsonQuery.keys[len(jsonQuery.keys)-1])
 				}
+			case jsonQuery.hasElement:
+				stmt.WriteQuoted(jsonQuery.column)
+				stmt.WriteString("::jsonb @> ")
+				stmt.AddVar(builder, jsonQuery.key)
 			case jsonQuery.equals:
 				if len(jsonQuery.keys) > 0 {
 					builder.WriteString(fmt.Sprintf("json_extract_path_text(%v::json,", stmt.Quote(jsonQuery.column)))

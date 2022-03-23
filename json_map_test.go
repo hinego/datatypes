@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	"gorm.io/datatypes"
+	"github.com/hinego/datatypes"
 	"gorm.io/gorm"
 	. "gorm.io/gorm/utils/tests"
 )
